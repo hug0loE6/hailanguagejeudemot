@@ -1,5 +1,6 @@
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from relation import RelationNode, CoupleRelation
 
 # =========================
 # SESSION (plus rapide)
@@ -17,7 +18,17 @@ def createmapping():
         listee[type.get("name")] = type.get("id")
     return listee
 
+def createmappingnom():
+    listee = {}
+    response = session.get("https://jdm-api.demo.lirmm.fr/v0/relations_types")
+    data = response.json()
+    for type in data:
+        listee[type.get("id")] = type.get("name")
+    return listee
+
+
 idParNom = createmapping()
+nomParId = createmappingnom()
 allrelationsfound = []
 
 # =========================
@@ -50,7 +61,7 @@ if len(listerelations) == 0:
 else:
     for i in listerelations:
         if i.get("type") == idParNom.get(relation):
-            allrelationsfound.append(i.get("id"))
+            allrelationsfound.append(RelationNode(i.get("id"), mot1, mot2, i.get("type"), relation))
 
 # =========================
 # RECUPERATION DES NODES INTERMEDIAIRES
@@ -99,10 +110,11 @@ def process_node(node):
                 getrelation = response2.json().get("relations", [])
 
                 for r2 in getrelation:
-                    results.append((r2.get("id"), r.get("id")))
+                    rel1 = RelationNode(r2.get("id"), mot1, node_name, r2.get("type"), nomParId.get(r2.get("type")))
+                    rel2 = RelationNode(r.get("id"), node_name, mot2, r.get("type"), relation)
+                    results.append(CoupleRelation(rel1, rel2))
 
         return results
-
     except:
         return []
 
