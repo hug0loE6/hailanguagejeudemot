@@ -11,24 +11,16 @@ session = requests.Session()
 # MAPPING DES RELATIONS
 # =========================
 def createmapping():
-    listee = {}
+    idnom = {}
+    nomid = {}
     response = session.get("https://jdm-api.demo.lirmm.fr/v0/relations_types")
     data = response.json()
     for type in data:
-        listee[type.get("name")] = type.get("id")
-    return listee
+        idnom[type.get("name")] = type.get("id")
+        nomid[type.get("id")] = type.get("name")
+    return idnom, nomid
 
-def createmappingnom():
-    listee = {}
-    response = session.get("https://jdm-api.demo.lirmm.fr/v0/relations_types")
-    data = response.json()
-    for type in data:
-        listee[type.get("id")] = type.get("name")
-    return listee
-
-
-idParNom = createmapping()
-nomParId = createmappingnom()
+idParNom, nomParId = createmapping()
 allrelationsfound = []
 
 # =========================
