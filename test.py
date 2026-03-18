@@ -4,10 +4,10 @@ import time
 # Récupérer l'input de l'utilisateur
 
 start = time.perf_counter()
-
+session = requests.Session()
 def createmappingid():
     listee = {}
-    response = requests.get("https://jdm-api.demo.lirmm.fr/v0/relations_types")
+    response = session.get("https://jdm-api.demo.lirmm.fr/v0/relations_types")
     data = response.json()
     for type in data:
         listee[type.get("name")] = type.get("id")
@@ -19,7 +19,7 @@ idParNom = createmappingid()
 
 def createmappingnom():
     listee = []
-    response = requests.get("https://jdm-api.demo.lirmm.fr/v0/relations_types")
+    response = session.get("https://jdm-api.demo.lirmm.fr/v0/relations_types")
     data = response.json()
     for type in data:
         listee.append(type.get("name"))
@@ -41,7 +41,7 @@ mot1, relation, mot2 = separer
 url = f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}/to/{mot2}"
 
 # Effectuer une requête GET
-response = requests.get(url)
+response = session.get(url)
 
 # Vérifier que la requête a réussi
 if response.status_code == 200:
@@ -74,7 +74,7 @@ if not checking:
     exit()
 
 
-response = requests.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}")
+response = session.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}")
 # Vérifier que la requête a réussi
 if response.status_code == 200:
     # Récupérer les données JSON
@@ -84,14 +84,14 @@ if response.status_code == 200:
         if i.get("type") == 200:
             listnode.remove(i)
 
-    data = requests.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/to/{mot2}").json()
+    data = session.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/to/{mot2}").json()
     NodebyID = {node.get("id"): node for node in listnode if "id" in node}
 
     for r in data.get("relations"):
         lenode = NodebyID.get(r.get("node1"))
         if lenode:
             if r.get("type") == idParNom.get(relation):
-                getrelation = requests.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}/to/{lenode.get("name")}").json().get("relations")
+                getrelation = session.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}/to/{lenode.get("name")}").json().get("relations")
                 for r2 in getrelation:
                     allrelationsfound.append((r2.get("id"),r.get("id")))
     print(allrelationsfound)

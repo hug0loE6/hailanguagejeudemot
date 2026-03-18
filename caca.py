@@ -65,7 +65,6 @@ if response.status_code != 200:
 data2 = response.json()
 listnode = data2.get("nodes", [])
 
-# ✅ filtrage propre
 listnode = [i for i in listnode if i.get("type") != 200]
 
 # =========================
