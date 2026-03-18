@@ -127,3 +127,16 @@ for res in results:
 # =========================
 print("\nRésultats trouvés :")
 print(allrelationsfound)
+
+resultatspertinents=[]
+for a in allrelationsfound:
+    if isinstance(a,RelationNode):
+        print(a)
+        print("\n")
+    else:
+        if a.relation1.relation_typename=="r_isa" or a.relation1.relation_typename=="r_hypo" or a.relation1.relation_typename == a.relation2.relation_typename:
+            resultatspertinents.append(a)
+
+for a in resultatspertinents:
+    print(a)
+    print("\n")
