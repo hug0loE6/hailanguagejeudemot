@@ -3,7 +3,7 @@ import requests
 # Récupérer l'input de l'utilisateur
 
 
-def createmapping():
+def createmappingid():
     listee = {}
     response = requests.get("https://jdm-api.demo.lirmm.fr/v0/relations_types")
     data = response.json()
@@ -13,7 +13,18 @@ def createmapping():
 
 allrelationsfound = []
 
-idParNom = createmapping()
+idParNom = createmappingid()
+
+def createmappingnom():
+    listee = []
+    response = requests.get("https://jdm-api.demo.lirmm.fr/v0/relations_types")
+    data = response.json()
+    for type in data:
+        listee.append(type.get("name"))
+    return listee
+
+listetouterelation=createmappingnom()
+
 
 linput = input("Entrez un input du format suivant : mot1 relation mot2\n")
 
@@ -48,6 +59,19 @@ else:
         if i.get("type") == idParNom.get(relation):
             allrelationsfound.append(i.get("id"))
 
+
+#verifier que la relation existe bien pour pas boucler dans le vide
+checking=False
+for e in listetouterelation:
+    if relation==e:
+        checking=True
+        break
+
+if not checking:
+    print("relation inexistante")
+    exit()
+
+
 urltransi = f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}"
 
 response = requests.get(urltransi)
@@ -69,7 +93,6 @@ if response.status_code == 200:
         response2 = requests.get(url)
         data=response2.json()
         listerelations = data.get("relations")
-
         for r in listerelations:
             if r.get("type") == idParNom.get(relation):
                 getrelation = requests.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}/to/{i.get('name')}").json().get("relations")
