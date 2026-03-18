@@ -68,7 +68,7 @@ if response.status_code == 200:
         lenode = NodebyID.get(r.get("node1"))
         if lenode:
             if r.get("type") == idParNom.get(relation):
-                getrelation = requests.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}/to/{lenode.get("id")}").json().get("relations")
+                getrelation = requests.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}/to/{lenode.get("name")}").json().get("relations")
                 for r2 in getrelation:
                     allrelationsfound.append((r2.get("id"),r.get("id")))
     print(allrelationsfound)
