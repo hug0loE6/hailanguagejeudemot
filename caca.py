@@ -173,7 +173,7 @@ for a in allrelationsfound:
                         getannotations = responseannot.json().get("nodes", [])
                         for n in getannotations:
                             if n.get("name") == "non spécifique":
-                                a.pertinence_score +=50
+                                a.pertinence_score +=65
                 
 
 
