@@ -1,6 +1,9 @@
 import requests
 from concurrent.futures import ThreadPoolExecutor
 from relation import RelationNode, CoupleRelation
+import time
+
+start = time.perf_counter()
 
 # =========================
 # SESSION (plus rapide)
@@ -80,6 +83,7 @@ data2 = response.json()
 listnode = data2.get("nodes", [])
 
 listnode = [i for i in listnode if i.get("type") != 200]
+print(len(listnode))
 
 # =========================
 # FONCTION PARALLELE
@@ -124,7 +128,7 @@ def process_node(node):
 # =========================
 # EXECUTION PARALLELE
 # =========================
-with ThreadPoolExecutor(max_workers=10) as executor:
+with ThreadPoolExecutor(max_workers=20) as executor:
     results = list(executor.map(process_node, listnode))
 
 # =========================
@@ -136,18 +140,34 @@ for res in results:
 # =========================
 # RESULTAT FINAL
 # =========================
-print("\nRésultats trouvés :")
-print(allrelationsfound)
+
+if len(allrelationsfound)==0:
+    print("Aucune relation trouvé")
+    exit()
+print("\nRésultats Pertinents :")
 
 resultatspertinents=[]
 for a in allrelationsfound:
     if isinstance(a,RelationNode):
         print(a)
-        print("\n")
     else:
-        if a.relation1.relation_typename=="r_isa" or a.relation1.relation_typename=="r_hypo" or a.relation1.relation_typename == a.relation2.relation_typename:
+        if a.relation1.relation_typename=="r_isa":
             resultatspertinents.append(a)
+            a.pertinence_score+=50
+        
+        if a.relation1.relation_typename=="r_hypo":
+            resultatspertinents.append(a)
+            a.pertinence_score+=30
+
+        if a.relation1.relation_typename == a.relation2.relation_typename:
+            resultatspertinents.append(a)
+            a.pertinence_score+=90
+
+
+resultatspertinents=sorted(resultatspertinents, key=lambda x: x.pertinence_score, reverse=True)
 
 for a in resultatspertinents:
-    print(a)
-    print("\n")
+    print(a,a.pertinence_score)
+
+end = time.perf_counter()
+print(f"Durée : {end - start:.4f} secondes")
