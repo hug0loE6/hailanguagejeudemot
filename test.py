@@ -50,31 +50,25 @@ else:
         if i.get("type") == idParNom.get(relation):
             allrelationsfound.append(i.get("id"))
 
-urltransi = f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}"
-
-response = requests.get(urltransi)
+response = requests.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}")
 
 # Vérifier que la requête a réussi
 if response.status_code == 200:
     # Récupérer les données JSON
-    data2 = response.json()
-    print("\n")
-    listnode =data2.get("nodes")
+    listnode =  response.json().get("nodes")
 
     for i in listnode[:]:
         if i.get("type") == 200:
             listnode.remove(i)
 
     data = requests.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/to/{mot2}").json()
-    listerelations = data.get("relations")
     NodebyID = {node.get("id"): node for node in listnode if "id" in node}
 
-    for r in listerelations:
+    for r in data.get("relations"):
         lenode = NodebyID.get(r.get("node1"))
-        print(lenode)
         if lenode:
             if r.get("type") == idParNom.get(relation):
-                getrelation = requests.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}/to/{i.get('name')}").json().get("relations")
+                getrelation = requests.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{mot1}/to/{lenode.get("id")}").json().get("relations")
                 for r2 in getrelation:
                     allrelationsfound.append((r2.get("id"),r.get("id")))
     print(allrelationsfound)
