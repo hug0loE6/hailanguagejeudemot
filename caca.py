@@ -26,14 +26,25 @@ allrelationsfound = []
 # =========================
 # INPUT UTILISATEUR
 # =========================
+
+def splitrelation(str):
+    str = str.split()
+    indexRelation = -1
+    for i in range(len(str)):
+        if str[i].startswith("r_"):
+            indexRelation = i
+            break
+    w1 = " ".join(str[:indexRelation])
+    relation = str[indexRelation]
+    w2 = " ".join(str[indexRelation+1:])
+    if indexRelation == -1:
+        print("Erreur : L'input doit être au format 'mot1 relation mot2'")
+        exit()
+    return w1, relation, w2
+
 linput = input("Entrez un input du format suivant : mot1 relation mot2\n")
-separer = linput.split()
+mot1, relation, mot2 = splitrelation(linput)
 
-if len(separer) != 3:
-    print("Erreur : L'input doit être au format 'mot1 relation mot2'")
-    exit()
-
-mot1, relation, mot2 = separer
 
 # =========================
 # RELATIONS DIRECTES
