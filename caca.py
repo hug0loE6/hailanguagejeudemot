@@ -159,6 +159,24 @@ for a in allrelationsfound:
             resultatspertinents.append(a)
             a.pertinence_score+=30
 
+            urltest = f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{a.relation2.word1}/to/{mot2}"
+            responsetest = session.get(urltest)
+            getrelation = responsetest.json().get("relations", [])
+
+            for r in getrelation:
+                if r.get("w") >= 100:
+                    urlannot = f"https://jdm-api.demo.lirmm.fr/v0/relations/from/:r{r.get("id")}"
+                    responseannot = session.get(urlannot)
+                    if response.status_code != 200:
+                        continue
+                    else:
+                        getannotations = responseannot.json().get("nodes", [])
+                        for n in getannotations:
+                            if n.get("name") == "non spécifique":
+                                a.pertinence_score +=50
+                
+
+
         if a.relation1.relation_typename == a.relation2.relation_typename:
             resultatspertinents.append(a)
             a.pertinence_score+=90
@@ -166,8 +184,10 @@ for a in allrelationsfound:
 
 resultatspertinents=sorted(resultatspertinents, key=lambda x: x.pertinence_score, reverse=True)
 
+indexdemerde=0
 for a in resultatspertinents:
-    print(a,a.pertinence_score)
+    indexdemerde+=1
+    print(indexdemerde,"|",a,"|",a.pertinence_score)
 
 end = time.perf_counter()
 print(f"Durée : {end - start:.4f} secondes")
