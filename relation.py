@@ -1,11 +1,12 @@
 class RelationNode:
-    def __init__(self, id, word1, word2, relation_typeid, relation_typename):
+    def __init__(self, id, word1, word2, relation_typeid, relation_typename, w):
         self.id = id
         self.word1 = word1
         self.word2 = word2
         self.relation_typeid = relation_typeid
         self.relation_typename = relation_typename
         self.annotation_score = 0
+        self.w = w
         
 
     def __repr__(self):
@@ -22,3 +23,6 @@ class CoupleRelation:
 
     def __repr__(self):
         return f"{self.relation1} & {self.relation2}"
+    
+    def scorecalc(self):
+        self.pertinence_score = (self.relation1.annotation_score+self.relation2.annotation_score)/2

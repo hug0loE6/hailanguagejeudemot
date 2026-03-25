@@ -3,7 +3,6 @@ from concurrent.futures import ThreadPoolExecutor
 from relation import RelationNode, CoupleRelation
 import time
 
-start = time.perf_counter()
 
 # =========================
 # SESSION (plus rapide)
@@ -11,7 +10,7 @@ start = time.perf_counter()
 session = requests.Session()
 
 # =========================
-# MAPPING DES RELATIONS
+# MAPPING DES RELATIONS et PERTINENCE ANNOTATIONS
 # =========================
 def createmapping():
     idnom = {}
@@ -25,6 +24,13 @@ def createmapping():
 
 idParNom, nomParId = createmapping()
 allrelationsfound = []
+
+mapAnnot = {
+    "non spécifique" : -65,
+    "peu pertinent" : -30,
+    "discutable" : 20,
+#à remplir
+}
 
 # =========================
 # INPUT UTILISATEUR
@@ -46,6 +52,7 @@ def splitrelation(str):
     return w1, relation, w2
 
 linput = input("Entrez un input du format suivant : mot1 relation mot2\n")
+start = time.perf_counter()
 mot1, relation, mot2 = splitrelation(linput)
 
 
@@ -67,7 +74,7 @@ if len(listerelations) == 0:
 else:
     for i in listerelations:
         if i.get("type") == idParNom.get(relation):
-            allrelationsfound.append(RelationNode(i.get("id"), mot1, mot2, i.get("type"), relation))
+            allrelationsfound.append(RelationNode(i.get("id"), mot1, mot2, i.get("type"), relation, i.get("w")))
 
 # =========================
 # RECUPERATION DES NODES INTERMEDIAIRES
@@ -117,8 +124,8 @@ def process_node(node):
                 getrelation = response2.json().get("relations", [])
 
                 for r2 in getrelation:
-                    rel1 = RelationNode(r2.get("id"), mot1, node_name, r2.get("type"), nomParId.get(r2.get("type")))
-                    rel2 = RelationNode(r.get("id"), node_name, mot2, r.get("type"), relation)
+                    rel1 = RelationNode(r2.get("id"), mot1, node_name, r2.get("type"), nomParId.get(r2.get("type")), r2.get("w"))
+                    rel2 = RelationNode(r.get("id"), node_name, mot2, r.get("type"), relation, r.get("w"))
                     results.append(CoupleRelation(rel1, rel2))
 
         return results
@@ -138,13 +145,15 @@ for res in results:
     allrelationsfound.extend(res)
 
 # =========================
-# RESULTAT FINAL
+# FILTRE ET NOTATION DU SCORE DE PERTINENCE
 # =========================
 
 if len(allrelationsfound)==0:
     print("Aucune relation trouvé")
     exit()
 print("\nRésultats Pertinents :")
+
+allrelationsfound = [a for a in allrelationsfound if not (isinstance(a, CoupleRelation) and (">" in a.relation1.word2))]
 
 resultatspertinents=[]
 for a in allrelationsfound:
@@ -159,28 +168,32 @@ for a in allrelationsfound:
             resultatspertinents.append(a)
             a.pertinence_score+=30
 
-            urltest = f"https://jdm-api.demo.lirmm.fr/v0/relations/from/{a.relation2.word1}/to/{mot2}"
-            responsetest = session.get(urltest)
-            getrelation = responsetest.json().get("relations", [])
-
-            for r in getrelation:
-                if r.get("w") >= 100:
-                    urlannot = f"https://jdm-api.demo.lirmm.fr/v0/relations/from/:r{r.get("id")}"
-                    responseannot = session.get(urlannot)
-                    if response.status_code != 200:
-                        continue
-                    else:
-                        getannotations = responseannot.json().get("nodes", [])
-                        for n in getannotations:
-                            if n.get("name") == "non spécifique":
-                                a.pertinence_score +=65
-                
-
-
         if a.relation1.relation_typename == a.relation2.relation_typename:
             resultatspertinents.append(a)
             a.pertinence_score+=90
 
+
+        if a.relation1.w >= 100:
+            repExist = session.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/:r{a.relation1.id}")
+            if repExist.status_code != 200:
+                continue
+            else:
+                annotation = repExist.json().get("nodes", [])
+                for ann in annotation:
+                    a.relation1.annotation_score = mapAnnot.get(ann.get("name"))
+
+        if a.relation2.w >= 100:
+            repExist = session.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/:r{a.relation2.id}")
+            if repExist.status_code != 200:
+                continue
+            else:
+                annotation = repExist.json().get("nodes", [])
+                for ann in annotation:
+                    a.relation2.annotation_score = mapAnnot.get(ann.get("name"))
+
+# =========================
+# TRI ET PRINT
+# =========================
 
 resultatspertinents=sorted(resultatspertinents, key=lambda x: x.pertinence_score, reverse=True)
 
