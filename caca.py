@@ -29,7 +29,7 @@ mapAnnot = {
     "non spécifique" : -65,
     "peu pertinent" : -30,
     "discutable" : 20,
-#à remplir
+#à changer et remplir
 }
 
 # =========================
@@ -180,7 +180,8 @@ for a in allrelationsfound:
             else:
                 annotation = repExist.json().get("nodes", [])
                 for ann in annotation:
-                    a.relation1.annotation_score = mapAnnot.get(ann.get("name"))
+                    if (score := mapAnnot.get(ann.get("name"))):
+                        a.relation1.annotation_score += score
 
         if a.relation2.w >= 100:
             repExist = session.get(f"https://jdm-api.demo.lirmm.fr/v0/relations/from/:r{a.relation2.id}")
@@ -189,7 +190,10 @@ for a in allrelationsfound:
             else:
                 annotation = repExist.json().get("nodes", [])
                 for ann in annotation:
-                    a.relation2.annotation_score = mapAnnot.get(ann.get("name"))
+                    if (score := mapAnnot.get(ann.get("name"))):
+                        a.relation2.annotation_score += score
+        
+        a.scorecalc()
 
 # =========================
 # TRI ET PRINT
